@@ -10,6 +10,9 @@ COPY wheelhouse /app/wheelhouse
 # Installer les paquets à partir du dossier local
 RUN pip install --no-cache-dir --find-links=/app/wheelhouse -r requirements.txt
 
+# Téléchargement du modèle à la construction de l'image
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-mpnet-base-v2')"
+
 
 
 

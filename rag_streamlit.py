@@ -1,5 +1,5 @@
-from langchain.vectorstores import Chroma
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from mistralai.client import MistralClient
 from mistralai import Mistral
 from langchain_mistralai import ChatMistralAI
@@ -56,32 +56,24 @@ def download_and_extract_chromadb():
 
 
 
-# 🔒 Mise en cache du modèle d'embedding
-@st.cache_resource
-def get_embedding_model():
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
-
-# 🔒 Mise en cache de la base vectorielle
 @st.cache_resource
 def get_vectordb():
-    # Lancer la fonction
-   if __name__ == "__main__":
-        folder_path = download_and_extract_chromadb()
-        print(f"📂 Chemin utilisé : {folder_path}")
-        embedding_model = get_embedding_model()
-        return Chroma(persist_directory=folder_path, embedding_function=embedding_model)
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-mpnet-base-v2")
+    vectordb = Chroma(persist_directory="chromadb", embedding_function=embeddings)
+    return vectordb   
 
-
-# ✨ Appel des fonctions dans ton app
-embedding_model = get_embedding_model()
 retriever = get_vectordb().as_retriever(search_kwargs={"k": 3})
 
 
 
 
-os.environ["MISTRAL_API_KEY"] = "1ROdIMBXIGXrgxnD3cywOg4EhRaJufJA"
 
-client = Mistral(api_key="1ROdIMBXIGXrgxnD3cywOg4EhRaJufJA")
+os.environ["MISTRAL_API_KEY"] = st.secrets["MISTRAL_API_KEY"]
+
+
+
+
+client = Mistral(api_key=os.environ["MISTRAL_API_KEY"])
 
 mistral_model = "mistral-large-latest" # "open-mixtral-8x22b" 
 llm = ChatMistralAI(model=mistral_model, temperature=0.2)
@@ -131,4 +123,4 @@ if query:
     for doc in qa_chain.invoke(query)['source_documents']:
         lien = doc.metadata.get("lien_pdf")
         st.markdown(f"- **Lien** : {lien}")
-       
+    st.write("Extrait :")
